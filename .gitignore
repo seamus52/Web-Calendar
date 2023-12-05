@@ -37,6 +37,9 @@ out/
 .idea/
 htmlReport/
 
+# Database files
+*.db
+
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 

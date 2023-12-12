@@ -10,10 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-
-// TODO
-//  - remove last commit (w/ db files)
-//  - save JPARepository chapter code into back-end sample projects
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/event")
@@ -33,14 +30,43 @@ public class EventController {
     }
 
     @GetMapping()
-    public ResponseEntity<?> listEvents() {
-        List<Event> events = repository.findAll();
+    public ResponseEntity<?> listEvents(@RequestParam Optional<String> start_time, @RequestParam Optional<String> end_time) {
+        List<Event> events;
+        if (start_time.isPresent() && end_time.isPresent()) {
+            events = repository.getAllBetweenDates(LocalDate.parse(start_time.get()), LocalDate.parse(end_time.get()));
+        } else {
+            events = repository.findAll();
+        }
 
         if (events.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
 
         return new ResponseEntity<>(events, HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getEventById(@PathVariable("id") int id) {
+        Optional<Event> event = repository.findById(id);
+
+        if (event.isEmpty()) {
+            return new ResponseEntity<>(Map.of("message", "The event doesn't exist!"), HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(event, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteEventById(@PathVariable("id") int id) {
+        Optional<Event> event = repository.findById(id);
+
+        if (event.isEmpty()) {
+            return new ResponseEntity<>(Map.of("message", "The event doesn't exist!"), HttpStatus.NOT_FOUND);
+        }
+
+        repository.deleteById(id);
+
+        return new ResponseEntity<>(event, HttpStatus.OK);
     }
 
     @GetMapping("/today")
